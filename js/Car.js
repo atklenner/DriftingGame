@@ -1,9 +1,9 @@
-const MAX_VELOCITY = 0.075;
-const MAX_REVERSE_VELOCITY = -0.025;
-const ACCELERATION = 0.0001;
-const DECELERATION = 0.0001;
-const COAST = 0.00005;
-const TURNING_RATE = 0.0025;
+const MAX_VELOCITY = 0.75; // px/ms
+const MAX_REVERSE_VELOCITY = -0.25;
+const ACCELERATION = 0.001; // px/ms^2
+const DECELERATION = 0.001;
+const COAST = 0.0005;
+const TURNING_RATE = 0.005; // tan(steering angle(= 20.5deg)) / car length(= 75px)
 
 export default class Car {
   constructor(carElem) {
@@ -54,14 +54,14 @@ export default class Car {
 
   turnLeft(delta) {
     if (this.velocity !== 0) {
-      this.angle += delta * TURNING_RATE;
+      this.angle += delta * this.velocity * TURNING_RATE;
       this.setDirection();
     }
   }
 
   turnRight(delta) {
     if (this.velocity !== 0) {
-      this.angle -= delta * TURNING_RATE;
+      this.angle -= delta * this.velocity * TURNING_RATE;
       this.setDirection();
     }
   }
@@ -71,8 +71,8 @@ export default class Car {
   }
 
   reset() {
-    this.x = 50;
-    this.y = 50;
+    this.x = window.innerWidth / 2;
+    this.y = window.innerHeight / 2;
     this.angle = Math.PI / 2;
     this.setDirection();
     this.velocity = 0;
@@ -81,14 +81,13 @@ export default class Car {
   update(delta) {
     this.x += this.direction.x * delta * this.velocity;
     this.y += this.direction.y * delta * this.velocity;
+
     const rect = this.rect();
-    if (rect.top <= 0 || rect.bottom >= window.innerHeight) {
-      this.velocity = this.velocity / 2;
-      this.direction.y *= -1;
+    if (rect.bottom <= 0 || rect.top >= window.innerHeight) {
+      this.reset();
     }
-    if (rect.right >= window.innerWidth || rect.left <= 0) {
-      this.velocity = this.velocity / 2;
-      this.direction.x *= -1;
+    if (rect.left >= window.innerWidth || rect.right <= 0) {
+      this.reset();
     }
   }
 }

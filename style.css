@@ -19,8 +19,7 @@ body {
   width: 50px;
   background-color: black;
   position: absolute;
-  top: calc(var(--y) * 1vh);
-  left: calc(var(--x) * 1vw);
-  transform: translate(-50%, -50%);
-  transform: rotate(var(--direction));
+  top: calc(var(--y) * 1px);
+  left: calc(var(--x) * 1px);
+  transform: rotate(var(--direction)) translate(0%, 50%);
 }
