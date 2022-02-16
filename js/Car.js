@@ -1,10 +1,11 @@
-const MAX_VELOCITY = 0.75; // px/ms
-const MAX_REVERSE_VELOCITY = -0.25;
-const ACCELERATION = 0.001; // px/ms^2
-const DECELERATION = 0.001;
-const COAST = 0.0005;
+const ENGINE_FORCE = 0.001; // px/ms^2, force / mass
+const BRAKING_FORCE = 0.001;
+const DRAG = 0.0005;
 const TURNING_RATE = 0.005; // tan(steering angle(= 20.5deg)) / car length(= 75px)
 
+// https://www.asawicki.info/Mirror/Car%20Physics%20for%20Games/Car%20Physics%20for%20Games.html
+// https://www.xarg.org/book/kinematics/ackerman-steering/
+// http://entertain.univie.ac.at/~hlavacs/publications/car_model06.pdf
 export default class Car {
   constructor(carElem) {
     this.carElem = carElem;
@@ -31,39 +32,32 @@ export default class Car {
     this.direction = { x: Math.cos(this.angle), y: -Math.sin(this.angle) };
   }
 
-  accelerate(delta) {
-    if (this.velocity < MAX_VELOCITY) {
-      this.velocity += ACCELERATION * delta;
+  getAcceleration() {
+    if (this.accelerating) {
+      return ENGINE_FORCE;
     }
+    return 0;
   }
 
-  decelerate(delta) {
-    if (this.velocity > MAX_REVERSE_VELOCITY) {
-      this.velocity -= DECELERATION * delta;
+  getDeceleration() {
+    if (this.decelerating) {
+      return BRAKING_FORCE;
     }
+    return 0;
   }
 
-  coast(delta) {
-    if (this.velocity > 0) {
-      this.velocity -= COAST * delta;
-    }
-    if (this.velocity < 0) {
-      this.velocity += COAST * delta;
-    }
+  getFriction() {
+    return Math.abs(DRAG * this.velocity);
   }
 
-  turnLeft(delta) {
-    if (this.velocity !== 0) {
-      this.angle += delta * this.velocity * TURNING_RATE;
-      this.setDirection();
+  getTurningRate() {
+    if (this.turningLeft) {
+      return TURNING_RATE;
     }
-  }
-
-  turnRight(delta) {
-    if (this.velocity !== 0) {
-      this.angle -= delta * this.velocity * TURNING_RATE;
-      this.setDirection();
+    if (this.turningRight) {
+      return -1 * TURNING_RATE;
     }
+    return 0;
   }
 
   rect() {
@@ -76,11 +70,26 @@ export default class Car {
     this.angle = Math.PI / 2;
     this.setDirection();
     this.velocity = 0;
+    this.accelerating = false;
+    this.decelerating = false;
+    this.turningLeft = false;
+    this.turningRight = false;
   }
 
   update(delta) {
-    this.x += this.direction.x * delta * this.velocity;
-    this.y += this.direction.y * delta * this.velocity;
+    this.x +=
+      this.direction.x * delta * this.velocity +
+      (this.getAcceleration() * delta * delta) / 2;
+    this.y +=
+      this.direction.y * delta * this.velocity +
+      (this.getAcceleration() * delta * delta) / 2;
+
+    this.velocity +=
+      (this.getAcceleration() - this.getDeceleration() - this.getFriction()) *
+      delta;
+
+    this.angle += delta * this.velocity * this.getTurningRate();
+    this.setDirection();
 
     const rect = this.rect();
     if (rect.bottom <= 0 || rect.top >= window.innerHeight) {
