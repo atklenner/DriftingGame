@@ -21,7 +21,7 @@ document.addEventListener("keydown", (e) => {
     car.accelerating = true;
   }
   if (e.key === "ArrowDown") {
-    car.decelerating = true;
+    car.braking = true;
   }
   if (e.key === "ArrowLeft") {
     car.turningLeft = true;
@@ -36,7 +36,7 @@ document.addEventListener("keyup", (e) => {
     car.accelerating = false;
   }
   if (e.key === "ArrowDown") {
-    car.decelerating = false;
+    car.braking = false;
   }
   if (e.key === "ArrowLeft") {
     car.turningLeft = false;
